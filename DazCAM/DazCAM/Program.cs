@@ -45,12 +45,16 @@ namespace DazCAM
 
         public static Queue CommandList = new Queue();
 
+        public static Tacho FanTacho = new Tacho();
+
         #endregion
 
         #region Static Main
 
         public static void Main()
         {
+            //FanTacho.Intialize(Cpu.Pin.GPIO_Pin13);//not working dont use
+
             X = new Axis("X", Pins.GPIO_PIN_D11, Pins.GPIO_PIN_D4, Pins.GPIO_PIN_D3);
             Y = new Axis("Y", Pins.GPIO_PIN_D9, Pins.GPIO_PIN_D8, Pins.GPIO_PIN_A1);
             Z = new Axis("Z", Pins.GPIO_PIN_D7, Pins.GPIO_PIN_D6, Pins.GPIO_PIN_A2);
@@ -72,7 +76,7 @@ namespace DazCAM
             var socketServer = new SocketServer();
             socketServer.OnRequest += SocketServer_OnRequest;
 
-            BlinkLED(3, true);       // Visual "Ready" Cue
+            BlinkLED(3, false);       // Visual "Ready" Cue
 
             // Boot up in E-Stop mode to require an initializing communication from the controller UI
             SetEStop();
@@ -96,7 +100,7 @@ namespace DazCAM
 
             if (EStopCondition)
             {
-                if (requestCommand != "?" && requestCommand != "CLEARESTOP")
+                if (requestCommand != "?" && requestCommand != "CLEARESTOP" && requestCommand != "SCAN")
                 {
                     error = true;
                     return "***E-STOP: No commands allowed while E-Stop is active";
@@ -106,6 +110,7 @@ namespace DazCAM
             switch (requestCommand)
             {
                 case "PING": return ExecutePing(true);
+                case "SCAN": return ExecuteScan(true);
                 case "?": return ReportStatus();
 
                 case "STEPRESOLUTION": return SetStepResolution(requestParams);
@@ -287,7 +292,7 @@ namespace DazCAM
         {
             while (_errorFlashActive)
             {
-                BlinkLED(5, true, true);
+                BlinkLED(5, false, true);
                 Thread.Sleep(500);
             }
         }
@@ -478,6 +483,15 @@ namespace DazCAM
             return "Pong!";
         }
 
+        /// <summary>
+        /// Blinks the LED 3 times
+        /// </summary>
+        private static string ExecuteScan(bool useExternalLED = false)
+        {
+            BlinkLED(3, useExternalLED);
+            return "IP-" + Microsoft.SPOT.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()[0].IPAddress;
+        }
+
         private static void BlinkLED(int blinkCount, bool useExternalLED = false, bool fast = false)
         {
             var pin = useExternalLED ? ExternalLed : Led;
@@ -519,6 +533,9 @@ namespace DazCAM
             status += "X-Limit Switch Tripped: " + X.IsAtLimit(out whichSwitch) + " - " + whichSwitch + cr;
             status += "Y-Limit Switch Tripped: " + Y.IsAtLimit(out whichSwitch) + " - " + whichSwitch + cr;
             status += "Z-Limit Switch Tripped: " + Z.IsAtLimit(out whichSwitch) + " - " + whichSwitch + cr;
+            status += cr;
+
+            status += "Fan RPM: " + FanTacho.GetRpm() + cr;
 
             if (EStopCondition)
             {

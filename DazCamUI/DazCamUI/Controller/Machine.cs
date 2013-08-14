@@ -107,6 +107,17 @@ namespace DazCamUI.Controller
             SendCommand("Ping", 3);
         }
 
+        public string Scan(string ipToScan, int start = 0, int end = 255)
+        {
+            //for (int i = start; i < end; i++)
+            //{
+            //    var ipAddress = SendCommand("Scan", 1, ipToScan + i);
+            //    if (ipAddress != "")
+            //        return ipAddress;
+            //}
+            return "0.0.0.0";
+        }
+
         public void RequestStatus()
         {
             SendCommand("?", 3);
@@ -351,77 +362,36 @@ namespace DazCamUI.Controller
         /// Sends the specified command to the device. If timeoutSeconds = 0, there is no timeout, otherwise the command will expect an acknowledgement within
         /// the specified interval.
         /// </summary>
-        public void SendCommand(string command, int timeoutSeconds = 0)
+        public void SendCommand(string command, int timeoutSeconds = 0, string address = "")
         {
+            if (address == "")
+                address = Settings.MachineIPAddress;
+
             if (EnqueueCommands)
             {
                 _commandQueue.Enqueue(command);
-                return;
+                return ;
             }
 
-            if (OnCommandSending != null) OnCommandSending(command);
+            if (OnCommandSending != null && !command.Contains("Scan")) OnCommandSending(command);
 
-            string responseText = "";
-            command += "<EOT>";
-
-            try
-            {
-                using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-                {
-                    socket.Connect(Settings.MachineIPAddress, 80);
-                    socket.Send(Encoding.UTF8.GetBytes(command), command.Length, SocketFlags.None);
-
-                    // Default timeout is 5 days (beyond a practical time), because a job can run for hours. Otherwise specified number of seconds for shorter operations
-                    // that expect an immediate response (like ping).
-                    var timeoutAfter = DateTime.Now.AddSeconds(timeoutSeconds);
-                    if (timeoutSeconds == 0) timeoutAfter = DateTime.Now.AddDays(5);
-
-                    while (true)
-                    {
-                        int bytesReceived = socket.Available;
-                        if (bytesReceived > 0)
-                        {
-                            // Get response
-                            byte[] buffer = new byte[bytesReceived];
-                            int byteCount = socket.Receive(buffer, bytesReceived, SocketFlags.None);
-                            responseText += new string(Encoding.UTF8.GetChars(buffer));
-
-                            if (responseText.Contains("<EOT>"))
-                            {
-                                responseText = responseText.Remove(responseText.Length - 5);
-
-                                RaiseOnCommandResponseEvent(false, responseText);
-
-                                // Parse each returned line for specific values and messages
-                                foreach (string line in responseText.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries))
-                                {
-                                    string responseLine = line.ToUpper();
-                                    if (responseLine.Contains("LOCATION:")) UpdateLocationFromResponse(responseLine);
-                                    if (responseLine.Contains("***E-STOP")) ActivateEStop(true);
-                                    if (responseLine.Contains("EDGE TOUCHED AT:")) RaiseTouchedAtEvent(responseLine);
-                                    if (responseLine.Contains("ERROR FACTOR:")) ConvertErrorFactor(responseLine);
-                                }
-
-                                return;
-                            }
-                        }
-
-                        if (DateTime.Now > timeoutAfter)
-                        {
-                            responseText = "Timeout!";
-                            RaiseOnCommandResponseEvent(true, responseText);
-                            return;
-                        }
-                    }
-                }
-            }
-
-            catch (SocketException ex)
-            {
-                responseText = ex.Message;
-
+            var responseText = SocketConnection.SendCommand(command, address, timeoutSeconds);
+            if (responseText.Contains("Timeout!"))
                 RaiseOnCommandResponseEvent(true, responseText);
-                return;
+
+            if (responseText.Contains("SE!"))
+                RaiseOnCommandResponseEvent(true, responseText.Substring(3));
+
+            RaiseOnCommandResponseEvent(false, responseText);
+
+            // Parse each returned line for specific values and messages
+            foreach (string line in responseText.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string responseLine = line.ToUpper();
+                if (responseLine.Contains("LOCATION:")) UpdateLocationFromResponse(responseLine);
+                if (responseLine.Contains("***E-STOP")) ActivateEStop(true);
+                if (responseLine.Contains("EDGE TOUCHED AT:")) RaiseTouchedAtEvent(responseLine);
+                if (responseLine.Contains("ERROR FACTOR:")) ConvertErrorFactor(responseLine);
             }
         }
 

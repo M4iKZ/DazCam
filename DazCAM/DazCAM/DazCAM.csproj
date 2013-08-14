@@ -38,6 +38,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Servo.cs" />
     <Compile Include="SocketServer.cs" />
+    <Compile Include="Tacho.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.SPOT.Hardware" />

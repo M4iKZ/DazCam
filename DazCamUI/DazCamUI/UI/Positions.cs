@@ -454,7 +454,7 @@ namespace DazCamUI
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            new DazCamUI.UI.Settings().ShowDialog(this);
+            new DazCamUI.UI.Settings(_machine).ShowDialog(this);
             UpdateDisplayLabels();
         }
 

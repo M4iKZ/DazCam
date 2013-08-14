@@ -16,12 +16,15 @@ namespace DazCamUI.UI
 
         private ControllerSettings _settings;
 
+        private readonly Machine _machine;
+
         #endregion
 
         #region Constructor
 
-        public Settings()
+        public Settings(Machine machine)
         {
+            _machine = machine;
             InitializeComponent();
         }
 
@@ -140,5 +143,17 @@ namespace DazCamUI.UI
         }
 
         #endregion
+
+        private void btnScan_Click(object sender, EventArgs e)
+        {
+            using (var scanForIp = new ScanForIp(_machine))
+            {
+                // passing this in ShowDialog will set the .Owner 
+                // property of the child form
+                scanForIp.ShowDialog(this);
+                txtIPAddress.Text = scanForIp.FoundAddress;
+            }
+        }
+
     }
 }

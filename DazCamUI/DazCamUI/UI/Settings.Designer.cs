@@ -30,6 +30,7 @@
         {
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.chkIgnoreLimits = new System.Windows.Forms.CheckBox();
             this.btnExecFooterFile = new System.Windows.Forms.Button();
             this.btnExecHeaderFile = new System.Windows.Forms.Button();
             this.txtExecFooterFile = new System.Windows.Forms.TextBox();
@@ -69,7 +70,7 @@
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.chkIgnoreLimits = new System.Windows.Forms.CheckBox();
+            this.btnScan = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -91,6 +92,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.btnScan);
             this.tabPage1.Controls.Add(this.chkIgnoreLimits);
             this.tabPage1.Controls.Add(this.btnExecFooterFile);
             this.tabPage1.Controls.Add(this.btnExecHeaderFile);
@@ -116,6 +118,16 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "General";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // chkIgnoreLimits
+            // 
+            this.chkIgnoreLimits.AutoSize = true;
+            this.chkIgnoreLimits.Location = new System.Drawing.Point(199, 187);
+            this.chkIgnoreLimits.Name = "chkIgnoreLimits";
+            this.chkIgnoreLimits.Size = new System.Drawing.Size(251, 17);
+            this.chkIgnoreLimits.TabIndex = 23;
+            this.chkIgnoreLimits.Text = "Ignore Limit Switches while G-Code is executing";
+            this.chkIgnoreLimits.UseVisualStyleBackColor = true;
             // 
             // btnExecFooterFile
             // 
@@ -471,15 +483,15 @@
             this.openFileDialog.Filter = "NC Files|*.nc|All Files|*.*";
             this.openFileDialog.SupportMultiDottedExtensions = true;
             // 
-            // chkIgnoreLimits
+            // btnScan
             // 
-            this.chkIgnoreLimits.AutoSize = true;
-            this.chkIgnoreLimits.Location = new System.Drawing.Point(199, 187);
-            this.chkIgnoreLimits.Name = "chkIgnoreLimits";
-            this.chkIgnoreLimits.Size = new System.Drawing.Size(251, 17);
-            this.chkIgnoreLimits.TabIndex = 23;
-            this.chkIgnoreLimits.Text = "Ignore Limit Switches while G-Code is executing";
-            this.chkIgnoreLimits.UseVisualStyleBackColor = true;
+            this.btnScan.Location = new System.Drawing.Point(324, 18);
+            this.btnScan.Name = "btnScan";
+            this.btnScan.Size = new System.Drawing.Size(56, 23);
+            this.btnScan.TabIndex = 24;
+            this.btnScan.Text = "Scan";
+            this.btnScan.UseVisualStyleBackColor = true;
+            this.btnScan.Click += new System.EventHandler(this.btnScan_Click);
             // 
             // Settings
             // 
@@ -558,5 +570,6 @@
         private System.Windows.Forms.Button btnExecHeaderFile;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
         private System.Windows.Forms.CheckBox chkIgnoreLimits;
+        private System.Windows.Forms.Button btnScan;
     }
 }
